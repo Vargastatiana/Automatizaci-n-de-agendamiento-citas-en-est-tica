@@ -1,0 +1,291 @@
+{
+  "name": "Estetica",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2a79546f-d33f-4c01-afda-6bc574d0dab4",
+      "name": "When clicking ‘Execute workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "eesenciaequilibrada@gmail.com",
+          "mode": "id"
+        },
+        "start": "={{ $json.inicio }}",
+        "end": "={{ $json.fin }}",
+        "additionalFields": {
+          "color": "={{ \n  ({\n    'Plasma facial': 3,\n    'Plasma capilar': 5,\n    'Plasma corporal': 2,\n    'Limpieza facial': 4,\n    'Sueroterapia regenerativa': 10\n  })[$json[\"Servicio que deseas\"]] || 11 \n}}",
+          "summary": "={{ $json['Nombre completo'] }} - {{ $json['Servicio que deseas'] }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "e9006b85-e8f7-40aa-ba10-85cf3d43fd11",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "KUZmEfSPXHMEneCO",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4dfe08b4-1aae-4356-a1c8-e30ea4fd300f",
+              "name": "inicio",
+              "value": "={{ $json[\"Fecha de tu cita\"].split('/').reverse().map(x => x.padStart(2, '0')).join('-') }}T{{ (parseInt($json[\"Hora de tu cita\"].split(':')[0]) + ($json[\"Hora de tu cita\"].toLowerCase().includes('p.m.') && $json[\"Hora de tu cita\"].split(':')[0] !== '12' ? 12 : 0)).toString().padStart(2, '0') }}:00:00",
+              "type": "string"
+            },
+            {
+              "id": "075dfb30-0e57-4d47-8e79-03355209a9d6",
+              "name": "fin",
+              "value": "={{ $json[\"Fecha de tu cita\"].split('/').reverse().map(x => x.padStart(2, '0')).join('-') }}T{{ (parseInt($json[\"Hora de tu cita\"].split(':')[0]) + ($json[\"Hora de tu cita\"].toLowerCase().includes('p.m.') && $json[\"Hora de tu cita\"].split(':')[0] !== '12' ? 13 : 1)).toString().padStart(2, '0') }}:00:00",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "1c7a633f-8692-49e3-9950-104661d01992",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1pzaRofReRyQqd6ETDwX3P21_xWLle7_q6xVz5y0da4c",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 126829390,
+          "mode": "list",
+          "cachedResultName": "Respuestas de formulario 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pzaRofReRyQqd6ETDwX3P21_xWLle7_q6xVz5y0da4c/edit#gid=126829390"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        192,
+        0
+      ],
+      "id": "4fc3fbb0-e103-46f9-a1e5-ddc657d191c1",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "8sEqHBEzCVtORPoP",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        832,
+        0
+      ],
+      "id": "06028d92-8842-4557-bf9b-cb6ac8d3a603",
+      "name": "Wait",
+      "webhookId": "0f4bba5a-1750-4030-852e-178565f5f0a5"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Google Sheets Trigger').item.json.Correo }}",
+        "subject": "=Recordatorio de tu cita hoy 🗓️",
+        "message": "=\"Hola {{ $('Google Sheets Trigger').item.json['Nombre completo'] }}, te recordamos que tu cita para {{ $('Google Sheets Trigger').item.json['Servicio que deseas'] }} es en una hora. ¡Te esperamos!\"\n\n\n✨ Estética Esencia Equilibrada ✨\nTu bienestar, nuestra prioridad.\n📞 320 8006900",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "7b1a5fa1-c043-4c23-b69b-f14b32345a54",
+      "name": "Send a message",
+      "webhookId": "b314e7b8-c5fa-47b1-a2c2-ce9106c8f3ba",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "xTwQNXoHrzpUNlGJ",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "9220d888-7428-460f-ab13-db119561b57a",
+      "name": "Wait1",
+      "webhookId": "9aba1bf3-77c0-419b-a0d5-9f6fe1b032ee"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Google Sheets Trigger').item.json.Correo }}",
+        "subject": "¿Qué tal estuvo tu servicio hoy? ✨",
+        "message": "=Hola  {{ $('Google Sheets Trigger').item.json['Nombre completo'] }}\nEsperamos que hayas quedado feliz con tu servicio de {{ $('Google Sheets Trigger').item.json['Servicio que deseas'] }}\nPara nosotros es muy importante saber cómo te sentiste. Si tienes un momento, por favor responde a este correo contándonos tu experiencia. ¡Nos ayuda mucho a mejorar!\n\n¡Que tengas un excelente día!\"\n\n\n✨ Estética Esencia Equilibrada ✨\nTu bienestar, nuestra prioridad.\n📞 320 8006900",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "c931aa4a-41bf-490d-9e27-d23e58b98bd3",
+      "name": "Send a message1",
+      "webhookId": "b25a8ea7-27f3-40da-af61-a851eac76dae",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "9MTqAasn4cHpOcmb",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When clicking ‘Execute workflow’": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      },
+      {
+        "json": {
+          "name": "Second item",
+          "code": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a89f6f86-cd9d-405e-b537-9ecfdea42e94",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b4e16412fa10d8b96aeef2d86726f7467e2f2b8d5eaee2a9bd9a0ab418ae64fe"
+  },
+  "id": "wJDF5ALGXv5AMNYd",
+  "tags": []
+}
